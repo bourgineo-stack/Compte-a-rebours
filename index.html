@@ -1,71 +1,82 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Atelier Mobilité</title>
+    <title>Atelier Mobilité - Animation</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
         #carte {
             width: 800px;
-            height: 600px;
-            background-color: #f0f0f0;
+            height: 500px;
+            margin: 0 auto;
+            background-color: #f0f8ff;
             position: relative;
+            border: 1px solid #ccc;
+            overflow: hidden;
         }
-        .vehicule {
+        .emoji {
             position: absolute;
-            width: 30px;
-            height: 30px;
-            transition: all 1s linear;
+            font-size: 24px;
+            transition: transform 0.5s ease-in-out;
+        }
+        #horloge {
+            font-size: 48px;
+            margin: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Animation des trajets</h1>
-    <div id="carte">
-        <!-- Les véhicules seront ajoutés ici via JavaScript -->
-    </div>
+    <h1>Simulation des trajets</h1>
+    <div id="horloge">6:00</div>
+    <div id="carte"></div>
 
     <script>
         // Horloge accélérée (1h réelle = 1 min)
-        let heureSimulee = 6; // Début à 6h
+        let heureSimulee = 6;
         let minuteSimulee = 0;
         let vitesse = 60; // 60x plus rapide
+        let estEnPause = false;
 
         // Fonction pour mettre à jour l'horloge
         function mettreAJourHorloge() {
+            if (estEnPause) return;
+
             minuteSimulee += vitesse;
             if (minuteSimulee >= 60) {
                 minuteSimulee = 0;
                 heureSimulee++;
             }
 
+            // Afficher l'heure
+            document.getElementById("horloge").textContent =
+                `${heureSimulee}:${minuteSimulee < 10 ? '0' + minuteSimulee : minuteSimulee}`;
+
             // Déclencher des événements en fonction de l'heure
             if (heureSimulee === 6 && minuteSimulee === 30) {
                 pauseAnimation();
+                setTimeout(reprendreAnimation, 5000); // Pause de 5 secondes
+            }
+            if (heureSimulee === 7 && minuteSimulee === 0) {
+                pauseAnimation();
+                setTimeout(reprendreAnimation, 5000);
             }
             if (heureSimulee === 7 && minuteSimulee === 40) {
-                ajouterVelos();
+                ajouterVelosEtPietons();
             }
-
-            // Afficher l'heure
-            console.log(`Heure simulée : ${heureSimulee}h${minuteSimulee}`);
+            if (heureSimulee === 7 && minuteSimulee === 50) {
+                ralentirAnimation();
+            }
         }
 
-        // Fonction pour ajouter des vélos à 7h40
-        function ajouterVelos() {
-            const velo = document.createElement("div");
-            velo.className = "vehicule";
-            velo.style.backgroundImage = "url('velo.png')";
-            velo.style.left = "100px";
-            velo.style.top = "200px";
-            document.getElementById("carte").appendChild(velo);
-
-            // Animer le vélo
-            setTimeout(() => {
-                velo.style.left = "500px";
-            }, 1000);
-        }
-
-        // Démarrer l'horloge
-        setInterval(mettreAJourHorloge, 1000);
-    </script>
-</body>
-</html>
+        // Fonction pour ajouter des voitures (dès le début)
+        function ajouterVoitures() {
+            const voiture = document.createElement("div");
+            voiture.className = "emoji";
+            voiture.textContent = "🚗";
+            voiture.style.left = "100px";
+            voiture.style.top = "200px";
+            document.getElementById("carte").appendChild(voiture);
+            animerEmoji(voiture);
+     
