@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Atelier Mobilité</title>
+    <style>
+        #carte {
+            width: 800px;
+            height: 600px;
+            background-color: #f0f0f0;
+            position: relative;
+        }
+        .vehicule {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            transition: all 1s linear;
+        }
+    </style>
+</head>
+<body>
+    <h1>Animation des trajets</h1>
+    <div id="carte">
+        <!-- Les véhicules seront ajoutés ici via JavaScript -->
+    </div>
+
+    <script>
+        // Horloge accélérée (1h réelle = 1 min)
+        let heureSimulee = 6; // Début à 6h
+        let minuteSimulee = 0;
+        let vitesse = 60; // 60x plus rapide
+
+        // Fonction pour mettre à jour l'horloge
+        function mettreAJourHorloge() {
+            minuteSimulee += vitesse;
+            if (minuteSimulee >= 60) {
+                minuteSimulee = 0;
+                heureSimulee++;
+            }
+
+            // Déclencher des événements en fonction de l'heure
+            if (heureSimulee === 6 && minuteSimulee === 30) {
+                pauseAnimation();
+            }
+            if (heureSimulee === 7 && minuteSimulee === 40) {
+                ajouterVelos();
+            }
+
+            // Afficher l'heure
+            console.log(`Heure simulée : ${heureSimulee}h${minuteSimulee}`);
+        }
+
+        // Fonction pour ajouter des vélos à 7h40
+        function ajouterVelos() {
+            const velo = document.createElement("div");
+            velo.className = "vehicule";
+            velo.style.backgroundImage = "url('velo.png')";
+            velo.style.left = "100px";
+            velo.style.top = "200px";
+            document.getElementById("carte").appendChild(velo);
+
+            // Animer le vélo
+            setTimeout(() => {
+                velo.style.left = "500px";
+            }, 1000);
+        }
+
+        // Démarrer l'horloge
+        setInterval(mettreAJourHorloge, 1000);
+    </script>
+</body>
+</html>
