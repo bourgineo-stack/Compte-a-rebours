@@ -1,82 +1,758 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Atelier Mobilité - Animation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation Trafic - Atelier Pelote de Laine</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        #carte {
-            width: 800px;
-            height: 500px;
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
-            background-color: #f0f8ff;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        
+        .control-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .clock-container {
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .clock {
+            font-size: 2.8em;
+            font-weight: bold;
+            color: #ecf0f1;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        button:disabled {
+            background: linear-gradient(45deg, #bdc3c7, #95a5a6);
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        
+        .speed-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .speed-btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+        }
+        
+        .speed-btn.active {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+        }
+        
+        .map-container {
             position: relative;
-            border: 1px solid #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background-color: #2c3e50;
+            min-height: 500px;
+            margin-bottom: 20px;
+        }
+        
+        #map {
+            width: 100%;
+            height: 500px;
+            background-color: #8bc34a;
+            position: relative;
             overflow: hidden;
         }
-        .emoji {
+        
+        .vehicle {
             position: absolute;
-            font-size: 24px;
-            transition: transform 0.5s ease-in-out;
+            font-size: 1.8em;
+            z-index: 20;
+            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));
+            transition: all 0.5s ease;
+            transform-origin: center;
         }
-        #horloge {
-            font-size: 48px;
-            margin: 20px;
+        
+        .building {
+            position: absolute;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            z-index: 5;
+        }
+        
+        .center-building {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+        }
+        
+        .trail {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .progress-container {
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .time-markers {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        
+        @media (max-width: 768px) {
+            .control-panel {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .clock {
+                font-size: 2.2em;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Simulation des trajets</h1>
-    <div id="horloge">6:00</div>
-    <div id="carte"></div>
+    <div class="container">
+        <header>
+            <h1>Simulation de Trafic - Atelier</h1>
+        </header>
+        
+        <div class="control-panel">
+            <div class="clock-container">
+                <div class="clock">06:00</div>
+            </div>
+            
+            <div class="controls">
+                <button id="startBtn">
+                    <span>▶️</span> Démarrer
+                </button>
+                <button id="pauseBtn" disabled>
+                    <span>⏸️</span> Pause
+                </button>
+                <button id="resetBtn">
+                    <span>🔄</span> Réinitialiser
+                </button>
+                
+                <div class="speed-controls">
+                    <button id="slowBtn" class="speed-btn">
+                        <span>🐢</span> Ralenti
+                    </button>
+                    <button id="normalBtn" class="speed-btn active">
+                        <span>🚶</span> Normal
+                    </button>
+                    <button id="fastBtn" class="speed-btn">
+                        <span>🚀</span> Rapide
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+            </div>
+            <div class="time-markers">
+                <span id="startTimeDisplay">6h00</span>
+                <span id="endTimeDisplay">8h00</span>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="map">
+                <!-- La carte et les véhicules seront ajoutés ici -->
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Horloge accélérée (1h réelle = 1 min)
-        let heureSimulee = 6;
-        let minuteSimulee = 0;
-        let vitesse = 60; // 60x plus rapide
-        let estEnPause = false;
-
-        // Fonction pour mettre à jour l'horloge
-        function mettreAJourHorloge() {
-            if (estEnPause) return;
-
-            minuteSimulee += vitesse;
-            if (minuteSimulee >= 60) {
-                minuteSimulee = 0;
-                heureSimulee++;
+        // ========== CONFIGURATION MODIFIABLE ==========
+        // Modifiez ces valeurs pour adapter la simulation à vos besoins
+        const CONFIG = {
+            // Horaires de la simulation
+            startTime: 6,   // Heure de début (6 = 6h00)
+            endTime: 8,     // Heure de fin (8 = 8h00)
+            
+            // Vitesses (secondes réelles pour une heure simulée)
+            speeds: {
+                slow: 120,   // 2 minutes réelles = 1 heure simulée
+                normal: 60,  // 1 minute réelle = 1 heure simulée
+                fast: 5      // 5 secondes réelles = 1 heure simulée
+            },
+            
+            // Types de véhicules avec leurs propriétés
+            vehicleTypes: {
+                car: { 
+                    emoji: "🚗", 
+                    startTime: 6, 
+                    endTime: 8, 
+                    frequency: 1500,
+                    size: 28,
+                    speed: 0.5,
+                    trailColor: "rgba(41, 128, 185, 0.7)"
+                },
+                bus: { 
+                    emoji: "🚌", 
+                    startTime: 6.2, 
+                    endTime: 8, 
+                    frequency: 8000,
+                    size: 32,
+                    speed: 0.3,
+                    trailColor: "rgba(230, 126, 34, 0.7)"
+                },
+                bicycle: { 
+                    emoji: "🚲", 
+                    startTime: 7.4, 
+                    endTime: 8, 
+                    frequency: 4000,
+                    size: 26,
+                    speed: 0.7,
+                    trailColor: "rgba(46, 204, 113, 0.7)"
+                },
+                pedestrian: { 
+                    emoji: "🚶", 
+                    startTime: 7.4, 
+                    endTime: 8, 
+                    frequency: 5000,
+                    size: 24,
+                    speed: 0.9,
+                    trailColor: "rgba(155, 89, 182, 0.7)"
+                }
+            },
+            
+            // Centre de destination (coordonnées en pourcentage)
+            center: {
+                x: 50,  // 50% depuis la gauche
+                y: 50   // 50% depuis le haut
+            },
+            
+            // Lieux de départ avec leurs types de véhicules
+            locations: {
+                // Lieux éloignés (seulement voitures et bus)
+                distant: [
+                    { x: 10, y: 10, name: "Banlieue Nord", vehicles: ["car", "bus"] },
+                    { x: 90, y: 10, name: "Banlieue Est", vehicles: ["car", "bus"] },
+                    { x: 10, y: 90, name: "Banlieue Ouest", vehicles: ["car", "bus"] },
+                    { x: 90, y: 90, name: "Banlieue Sud", vehicles: ["car", "bus"] }
+                ],
+                // Lieux intermédiaires (voitures, bus et vélos)
+                intermediate: [
+                    { x: 30, y: 30, name: "Quartier Résidentiel", vehicles: ["car", "bus", "bicycle"] },
+                    { x: 70, y: 30, name: "Zone Commerciale", vehicles: ["car", "bus", "bicycle"] },
+                    { x: 30, y: 70, name: "Parc", vehicles: ["car", "bus", "bicycle"] },
+                    { x: 70, y: 70, name: "Gare", vehicles: ["car", "bus", "bicycle"] }
+                ],
+                // Lieux proches (tous les types)
+                close: [
+                    { x: 40, y: 40, name: "Centre-Ville Ouest", vehicles: ["car", "bus", "bicycle", "pedestrian"] },
+                    { x: 60, y: 40, name: "Centre-Ville Est", vehicles: ["car", "bus", "bicycle", "pedestrian"] },
+                    { x: 40, y: 60, name: "Université", vehicles: ["car", "bus", "bicycle", "pedestrian"] },
+                    { x: 60, y: 60, name: "Hôpital", vehicles: ["car", "bus", "bicycle", "pedestrian"] }
+                ]
             }
+        };
+        // ========== FIN DE LA CONFIGURATION ==========
 
-            // Afficher l'heure
-            document.getElementById("horloge").textContent =
-                `${heureSimulee}:${minuteSimulee < 10 ? '0' + minuteSimulee : minuteSimulee}`;
+        // État de l'application
+        let state = {
+            currentTime: CONFIG.startTime,
+            isRunning: false,
+            currentSpeed: 'normal',
+            speedMultiplier: 1,
+            intervalId: null,
+            vehicles: [],
+            trails: [],
+            startTimestamp: null,
+            lastTrailTime: 0
+        };
 
-            // Déclencher des événements en fonction de l'heure
-            if (heureSimulee === 6 && minuteSimulee === 30) {
-                pauseAnimation();
-                setTimeout(reprendreAnimation, 5000); // Pause de 5 secondes
+        // Éléments DOM
+        const clockElement = document.querySelector('.clock');
+        const mapElement = document.getElementById('map');
+        const progressBar = document.getElementById('progressBar');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const slowBtn = document.getElementById('slowBtn');
+        const normalBtn = document.getElementById('normalBtn');
+        const fastBtn = document.getElementById('fastBtn');
+        const startTimeDisplay = document.getElementById('startTimeDisplay');
+        const endTimeDisplay = document.getElementById('endTimeDisplay');
+
+        // Initialisation
+        function initialize() {
+            createMapElements();
+            updateTimeDisplays();
+            updateClock();
+        }
+
+        // Créer les éléments de la carte
+        function createMapElements() {
+            // Créer des routes
+            createRoads();
+            
+            // Créer le bâtiment central
+            createCentralBuilding();
+            
+            // Créer les autres bâtiments (lieux de départ)
+            createLocationBuildings();
+        }
+
+        // Créer les routes
+        function createRoads() {
+            // Routes horizontales
+            for (let i = 1; i <= 4; i++) {
+                const road = document.createElement('div');
+                road.style.position = 'absolute';
+                road.style.left = '0';
+                road.style.right = '0';
+                road.style.height = '4px';
+                road.style.top = `${i * 100}px`;
+                road.style.backgroundColor = '#7f8c8d';
+                road.style.opacity = '0.6';
+                mapElement.appendChild(road);
+                
+                // Ligne centrale pointillée
+                const centerLine = document.createElement('div');
+                centerLine.style.position = 'absolute';
+                centerLine.style.left = '0';
+                centerLine.style.right = '0';
+                centerLine.style.height = '2px';
+                centerLine.style.top = `${i * 100 + 1}px`;
+                centerLine.style.backgroundImage = 'linear-gradient(to right, #ecf0f1 50%, transparent 50%)';
+                centerLine.style.backgroundSize = '20px 2px';
+                mapElement.appendChild(centerLine);
             }
-            if (heureSimulee === 7 && minuteSimulee === 0) {
-                pauseAnimation();
-                setTimeout(reprendreAnimation, 5000);
-            }
-            if (heureSimulee === 7 && minuteSimulee === 40) {
-                ajouterVelosEtPietons();
-            }
-            if (heureSimulee === 7 && minuteSimulee === 50) {
-                ralentirAnimation();
+            
+            // Routes verticales
+            for (let i = 1; i <= 3; i++) {
+                const road = document.createElement('div');
+                road.style.position = 'absolute';
+                road.style.top = '0';
+                road.style.bottom = '0';
+                road.style.width = '4px';
+                road.style.left = `${i * 200}px`;
+                road.style.backgroundColor = '#7f8c8d';
+                road.style.opacity = '0.6';
+                mapElement.appendChild(road);
+                
+                // Ligne centrale pointillée
+                const centerLine = document.createElement('div');
+                centerLine.style.position = 'absolute';
+                centerLine.style.top = '0';
+                centerLine.style.bottom = '0';
+                centerLine.style.width = '2px';
+                centerLine.style.left = `${i * 200 + 1}px`;
+                centerLine.style.backgroundImage = 'linear-gradient(to bottom, #ecf0f1 50%, transparent 50%)';
+                centerLine.style.backgroundSize = '2px 20px';
+                mapElement.appendChild(centerLine);
             }
         }
 
-        // Fonction pour ajouter des voitures (dès le début)
-        function ajouterVoitures() {
-            const voiture = document.createElement("div");
-            voiture.className = "emoji";
-            voiture.textContent = "🚗";
-            voiture.style.left = "100px";
-            voiture.style.top = "200px";
-            document.getElementById("carte").appendChild(voiture);
-            animerEmoji(voiture);
-     
+        // Créer le bâtiment central
+        function createCentralBuilding() {
+            const building = document.createElement('div');
+            building.className = 'building center-building';
+            building.style.width = '120px';
+            building.style.height = '120px';
+            building.style.left = `calc(${CONFIG.center.x}% - 60px)`;
+            building.style.top = `calc(${CONFIG.center.y}% - 60px)`;
+            building.textContent = 'Centre';
+            building.style.fontSize = '1.2em';
+            mapElement.appendChild(building);
+        }
+
+        // Créer les bâtiments des lieux de départ
+        function createLocationBuildings() {
+            // Lieux éloignés
+            CONFIG.locations.distant.forEach(location => {
+                createLocationBuilding(location, '#e74c3c');
+            });
+            
+            // Lieux intermédiaires
+            CONFIG.locations.intermediate.forEach(location => {
+                createLocationBuilding(location, '#f39c12');
+            });
+            
+            // Lieux proches
+            CONFIG.locations.close.forEach(location => {
+                createLocationBuilding(location, '#2ecc71');
+            });
+        }
+
+        // Créer un bâtiment de lieu
+        function createLocationBuilding(location, color) {
+            const building = document.createElement('div');
+            building.className = 'building';
+            building.style.width = '80px';
+            building.style.height = '80px';
+            building.style.left = `calc(${location.x}% - 40px)`;
+            building.style.top = `calc(${location.y}% - 40px)`;
+            building.textContent = location.name;
+            building.style.background = `linear-gradient(45deg, ${color}, ${color}dd)`;
+            building.style.fontSize = '0.9em';
+            building.style.padding = '5px';
+            building.style.textAlign = 'center';
+            building.style.display = 'flex';
+            building.style.alignItems = 'center';
+            building.style.justifyContent = 'center';
+            mapElement.appendChild(building);
+        }
+
+        // Mettre à jour l'affichage des heures
+        function updateTimeDisplays() {
+            startTimeDisplay.textContent = formatTime(CONFIG.startTime);
+            endTimeDisplay.textContent = formatTime(CONFIG.endTime);
+        }
+
+        // Formater l'heure
+        function formatTime(hours) {
+            const h = Math.floor(hours);
+            const m = Math.round((hours - h) * 60);
+            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+        }
+
+        // Mettre à jour l'horloge
+        function updateClock() {
+            clockElement.textContent = formatTime(state.currentTime);
+            
+            // Mettre à jour la barre de progression
+            const progress = ((state.currentTime - CONFIG.startTime) / (CONFIG.endTime - CONFIG.startTime)) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // Générer un véhicule
+        function generateVehicle(type) {
+            const vehicleConfig = CONFIG.vehicleTypes[type];
+            if (!vehicleConfig) return;
+            
+            // Vérifier si ce type de véhicule doit être présent à cette heure
+            if (state.currentTime < vehicleConfig.startTime || state.currentTime > vehicleConfig.endTime) {
+                return;
+            }
+            
+            // Choisir un lieu de départ approprié pour ce type de véhicule
+            const location = getRandomLocationForVehicle(type);
+            if (!location) return;
+            
+            // Calculer les coordonnées de départ (près du bâtiment)
+            const startX = (location.x / 100) * mapElement.offsetWidth;
+            const startY = (location.y / 100) * mapElement.offsetHeight;
+            
+            // Calculer les coordonnées du centre
+            const centerX = (CONFIG.center.x / 100) * mapElement.offsetWidth;
+            const centerY = (CONFIG.center.y / 100) * mapElement.offsetHeight;
+            
+            // Créer l'élément du véhicule
+            const vehicle = document.createElement('div');
+            vehicle.className = 'vehicle';
+            vehicle.textContent = vehicleConfig.emoji;
+            vehicle.dataset.type = type;
+            vehicle.style.fontSize = `${vehicleConfig.size}px`;
+            vehicle.style.left = `${startX}px`;
+            vehicle.style.top = `${startY}px`;
+            
+            // Calculer l'angle vers le centre pour orienter le véhicule
+            const angle = Math.atan2(centerY - startY, centerX - startX) * 180 / Math.PI;
+            vehicle.style.transform = `rotate(${angle}deg)`;
+            
+            // Ajouter au DOM
+            mapElement.appendChild(vehicle);
+            
+            // Animation vers le centre
+            const durationToCenter = (8000 / vehicleConfig.speed) / state.speedMultiplier;
+            vehicle.style.transition = `left ${durationToCenter}ms linear, top ${durationToCenter}ms linear`;
+            
+            setTimeout(() => {
+                vehicle.style.left = `${centerX}px`;
+                vehicle.style.top = `${centerY}px`;
+            }, 10);
+            
+            // Stocker les informations du véhicule
+            const vehicleData = {
+                element: vehicle,
+                type: type,
+                startX: startX,
+                startY: startY,
+                centerX: centerX,
+                centerY: centerY,
+                startTime: Date.now(),
+                durationToCenter: durationToCenter,
+                trailColor: vehicleConfig.trailColor,
+                state: 'moving_to_center'
+            };
+            
+            state.vehicles.push(vehicleData);
+            
+            // Après arrivée au centre, le véhicule reste au centre
+            setTimeout(() => {
+                if (vehicle.parentNode && vehicleData.state === 'moving_to_center') {
+                    vehicleData.state = 'arrived';
+                    // Le véhicule reste au centre, pas de transformation
+                }
+            }, durationToCenter);
+            
+            // Démarrer le traçage
+            startTrail(vehicleData);
+        }
+
+        // Obtenir un lieu aléatoire pour un type de véhicule
+        function getRandomLocationForVehicle(type) {
+            // Regrouper tous les lieux qui acceptent ce type de véhicule
+            const allLocations = [
+                ...CONFIG.locations.distant.filter(loc => loc.vehicles.includes(type)),
+                ...CONFIG.locations.intermediate.filter(loc => loc.vehicles.includes(type)),
+                ...CONFIG.locations.close.filter(loc => loc.vehicles.includes(type))
+            ];
+            
+            if (allLocations.length === 0) return null;
+            
+            // Choisir un lieu aléatoire
+            return allLocations[Math.floor(Math.random() * allLocations.length)];
+        }
+
+        // Démarrer le traçage pour un véhicule
+        function startTrail(vehicleData) {
+            const trailInterval = setInterval(() => {
+                if (vehicleData.state !== 'moving_to_center') {
+                    clearInterval(trailInterval);
+                    return;
+                }
+                
+                const vehicle = vehicleData.element;
+                const rect = vehicle.getBoundingClientRect();
+                const mapRect = mapElement.getBoundingClientRect();
+                
+                const x = rect.left - mapRect.left + rect.width / 2;
+                const y = rect.top - mapRect.top + rect.height / 2;
+                
+                // Créer un point de tracé
+                const trail = document.createElement('div');
+                trail.className = 'trail';
+                trail.style.left = `${x}px`;
+                trail.style.top = `${y}px`;
+                trail.style.width = '8px';
+                trail.style.height = '8px';
+                trail.style.backgroundColor = vehicleData.trailColor;
+                
+                // Ajouter au DOM
+                mapElement.appendChild(trail);
+                state.trails.push(trail);
+                
+                // Supprimer le tracé après un certain temps
+                setTimeout(() => {
+                    if (trail.parentNode) {
+                        trail.parentNode.removeChild(trail);
+                    }
+                    state.trails = state.trails.filter(t => t !== trail);
+                }, 5000);
+            }, 200);
+        }
+
+        // Définir la vitesse de simulation
+        function setSpeed(speed) {
+            state.currentSpeed = speed;
+            
+            // Mettre à jour l'apparence des boutons
+            slowBtn.classList.remove('active');
+            normalBtn.classList.remove('active');
+            fastBtn.classList.remove('active');
+            
+            if (speed === 'slow') slowBtn.classList.add('active');
+            if (speed === 'normal') normalBtn.classList.add('active');
+            if (speed === 'fast') fastBtn.classList.add('active');
+            
+            // Si la simulation est en cours, redémarrer avec la nouvelle vitesse
+            if (state.isRunning) {
+                pauseSimulation();
+                startSimulation();
+            }
+        }
+
+        // Boucle principale de la simulation
+        function runSimulation() {
+            if (!state.isRunning) return;
+            
+            // Calculer le temps écoulé en secondes
+            const now = Date.now();
+            const elapsedSeconds = (now - state.startTimestamp) / 1000;
+            
+            // Calculer le nouveau temps simulé en fonction de la vitesse actuelle
+            const secondsPerSimulatedHour = CONFIG.speeds[state.currentSpeed];
+            state.currentTime = CONFIG.startTime + (elapsedSeconds / secondsPerSimulatedHour);
+            
+            // Mettre à jour l'interface
+            updateClock();
+            
+            // Générer des véhicules aléatoirement
+            for (const type in CONFIG.vehicleTypes) {
+                if (Math.random() < 0.04) { // Probabilité de génération
+                    generateVehicle(type);
+                }
+            }
+            
+            // Arrêter la simulation après l'heure de fin
+            if (state.currentTime >= CONFIG.endTime) {
+                stopSimulation();
+                state.currentTime = CONFIG.endTime;
+                updateClock();
+            }
+        }
+
+        // Démarrer la simulation
+        function startSimulation() {
+            if (state.isRunning) return;
+            
+            state.isRunning = true;
+            state.startTimestamp = Date.now() - ((state.currentTime - CONFIG.startTime) * CONFIG.speeds[state.currentSpeed] * 1000);
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            
+            state.intervalId = setInterval(runSimulation, 100);
+        }
+
+        // Mettre en pause la simulation
+        function pauseSimulation() {
+            state.isRunning = false;
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            
+            if (state.intervalId) {
+                clearInterval(state.intervalId);
+                state.intervalId = null;
+            }
+        }
+
+        // Réinitialiser la simulation
+        function resetSimulation() {
+            pauseSimulation();
+            
+            state.currentTime = CONFIG.startTime;
+            
+            // Supprimer tous les véhicules
+            state.vehicles.forEach(vehicle => {
+                if (vehicle.element.parentNode) {
+                    vehicle.element.parentNode.removeChild(vehicle.element);
+                }
+            });
+            state.vehicles = [];
+            
+            // Supprimer tous les tracés
+            state.trails.forEach(trail => {
+                if (trail.parentNode) {
+                    trail.parentNode.removeChild(trail);
+                }
+            });
+            state.trails = [];
+            
+            updateClock();
+        }
+
+        // Événements
+        startBtn.addEventListener('click', startSimulation);
+        pauseBtn.addEventListener('click', pauseSimulation);
+        resetBtn.addEventListener('click', resetSimulation);
+        slowBtn.addEventListener('click', () => setSpeed('slow'));
+        normalBtn.addEventListener('click', () => setSpeed('normal'));
+        fastBtn.addEventListener('click', () => setSpeed('fast'));
+
+        // Initialisation
+        initialize();
+    </script>
+</body>
+</html>
